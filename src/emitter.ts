@@ -115,7 +115,9 @@ export const HeadingRedirect: QuartzEmitterPlugin = () => {
   <meta name="robots" content="noindex">
   <title>Redirecting...</title>
   <script>
+  setTimeout(() => {
     window.location.replace(${JSON.stringify(redirectUrl)});
+  }, 0);
   </script>
 </head>
 <body>
