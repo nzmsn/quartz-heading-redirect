@@ -1,5 +1,7 @@
 import path from "node:path"
 import fs from "node:fs/promises"
+// @ts-ignore
+import redirectLinksScript from "./redirect-links.inline"
 import type {
   QuartzEmitterPlugin,
   ProcessedContent,
@@ -81,6 +83,7 @@ export const HeadingRedirect: QuartzEmitterPlugin = () => {
     content: ProcessedContent[],
   ): Promise<FilePath[]> => {
     const outputs: FilePath[] = []
+const redirectSlugs: string[] = []
 
     for (const [_tree, vfile] of content) {
       const frontmatter = (vfile.data?.frontmatter ?? {}) as {
@@ -102,6 +105,7 @@ export const HeadingRedirect: QuartzEmitterPlugin = () => {
       if (!slug) {
         continue
       }
+redirectSlugs.push(slug)
 
       const redirectUrl = makeRedirectUrl(target)
       const safeUrl = escapeHtml(redirectUrl)
@@ -151,13 +155,34 @@ export const HeadingRedirect: QuartzEmitterPlugin = () => {
 
       outputs.push(outputPath)
     }
+const redirectSlugsPath = path.join(
+  ctx.argv.output,
+  "heading-redirects.json",
+) as FilePath
 
+await fs.writeFile(
+  redirectSlugsPath,
+  JSON.stringify(redirectSlugs),
+  "utf8",
+)
+
+outputs.push(redirectSlugsPath)
     return outputs
   }
 
   return {
     name: "HeadingRedirect",
-
+externalResources() {
+  return {
+    js: [
+      {
+        script: redirectLinksScript,
+        loadTime: "afterDOMReady",
+        contentType: "inline",
+      },
+    ],
+  }
+},
     async emit(ctx, content, _resources) {
       return emitRedirects(ctx, content)
     },

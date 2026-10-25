@@ -3,6 +3,11 @@ import path from 'path';
 import fs from 'fs/promises';
 
 createRequire(import.meta.url);
+
+// src/redirect-links.inline.ts
+var redirect_links_inline_default = 'var r=async()=>{try{let t=await fetch("/heading-redirects.json");if(!t.ok)return;let o=await t.json(),a=new Set(o.map(e=>`/${e}`));document.querySelectorAll("a[href]").forEach(e=>{let n=new URL(e.href,window.location.href);n.origin===window.location.origin&&a.has(n.pathname)&&(e.dataset.routerIgnore="")})}catch{}};document.addEventListener("nav",r);r();\n';
+
+// src/emitter.ts
 var escapeHtml = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 var makeRedirectUrl = (target) => {
   const hashIndex = target.indexOf("#");
@@ -26,6 +31,7 @@ var makeRedirectUrl = (target) => {
 var HeadingRedirect = () => {
   const emitRedirects = async (ctx, content) => {
     const outputs = [];
+    const redirectSlugs = [];
     for (const [_tree, vfile] of content) {
       const frontmatter = vfile.data?.frontmatter ?? {};
       if (typeof frontmatter.redirect !== "string") {
@@ -39,6 +45,7 @@ var HeadingRedirect = () => {
       if (!slug) {
         continue;
       }
+      redirectSlugs.push(slug);
       const redirectUrl = makeRedirectUrl(target);
       const safeUrl = escapeHtml(redirectUrl);
       const html = `<!DOCTYPE html>
@@ -73,10 +80,31 @@ var HeadingRedirect = () => {
       await fs.writeFile(outputPath, html, "utf8");
       outputs.push(outputPath);
     }
+    const redirectSlugsPath = path.join(
+      ctx.argv.output,
+      "heading-redirects.json"
+    );
+    await fs.writeFile(
+      redirectSlugsPath,
+      JSON.stringify(redirectSlugs),
+      "utf8"
+    );
+    outputs.push(redirectSlugsPath);
     return outputs;
   };
   return {
     name: "HeadingRedirect",
+    externalResources() {
+      return {
+        js: [
+          {
+            script: redirect_links_inline_default,
+            loadTime: "afterDOMReady",
+            contentType: "inline"
+          }
+        ]
+      };
+    },
     async emit(ctx, content, _resources) {
       return emitRedirects(ctx, content);
     },
