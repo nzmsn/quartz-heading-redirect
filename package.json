@@ -96,7 +96,7 @@
     "vitest": "^2.1.9",
     "@changesets/cli": "^2.29.0"
   },
-  "quartz": {
+"quartz": {
   "name": "heading-redirect",
   "displayName": "Heading Redirect",
   "category": "emitter",
@@ -107,19 +107,11 @@
   "defaultEnabled": true,
   "defaultOptions": {}
 },
-    "components": {
-      "ExampleComponent": {
-        "displayName": "Example Component",
-        "defaultPosition": "right",
-        "defaultPriority": 50
-      }
-    }
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10.9.2"
-  },
-  "publishConfig": {
-    "access": "public"
-  }
+"engines": {
+  "node": ">=22",
+  "npm": ">=10.9.2"
+},
+"publishConfig": {
+  "access": "public"
+}
 }
