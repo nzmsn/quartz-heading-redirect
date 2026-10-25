@@ -6,7 +6,6 @@ export { default as ExampleComponent } from "./components/ExampleComponent";
 export type {
   ExampleTransformerOptions,
   ExampleFilterOptions,
-  ExampleEmitterOptions,
 } from "./types";
 
 export type { ExampleComponentOptions } from "./components/ExampleComponent";
