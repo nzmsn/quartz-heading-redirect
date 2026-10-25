@@ -1,15 +1,15 @@
 {
-  "name": "@quartz-community/plugin-template",
-  "version": "0.1.0",
-  "description": "Template repository for Quartz community plugins.",
+"name": "quartz-heading-redirect",
+"version": "0.1.0",
+"description": "Redirect Quartz pages to arbitrary headings using frontmatter.",
   "type": "module",
   "license": "MIT",
-  "author": "Quartz Community",
+  "author": "nzmsn",
   "homepage": "https://quartz.jzhao.xyz",
   "repository": {
-    "type": "git",
-    "url": "https://github.com/quartz-community/plugin-template"
-  },
+  "type": "git",
+  "url": "https://github.com/nzmsn/quartz-heading-redirect"
+},
   "keywords": [
     "quartz",
     "quartz-plugin",
@@ -97,25 +97,16 @@
     "@changesets/cli": "^2.29.0"
   },
   "quartz": {
-    "name": "plugin-template",
-    "displayName": "Plugin Template",
-    "category": "transformer",
-    "version": "1.0.0",
-    "quartzVersion": ">=5.0.0",
-    "dependencies": [],
-    "defaultOrder": 50,
-    "defaultEnabled": true,
-    "defaultOptions": {},
-    "optionSchema": {
-      "highlightToken": {
-        "type": "enum",
-        "values": [
-          "==",
-          "**",
-          "~~"
-        ]
-      }
-    },
+  "name": "heading-redirect",
+  "displayName": "Heading Redirect",
+  "category": "emitter",
+  "version": "1.0.0",
+  "quartzVersion": ">=5.0.0",
+  "dependencies": [],
+  "defaultOrder": 90,
+  "defaultEnabled": true,
+  "defaultOptions": {}
+},
     "components": {
       "ExampleComponent": {
         "displayName": "Example Component",
