@@ -1,4 +1,4 @@
-import { QuartzEmitterPlugin } from '@quartz-community/types';
+import { QuartzEmitterPlugin, QuartzTransformerPlugin } from '@quartz-community/types';
 
 /**
  * redirect frontmatter を持つノートについて、
@@ -6,4 +6,6 @@ import { QuartzEmitterPlugin } from '@quartz-community/types';
  */
 declare const HeadingRedirect: QuartzEmitterPlugin;
 
-export { HeadingRedirect };
+declare const HeadingRedirectTransformer: QuartzTransformerPlugin;
+
+export { HeadingRedirect, HeadingRedirectTransformer };
