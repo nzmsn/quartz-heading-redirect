@@ -75,7 +75,7 @@ const makeRedirectUrl = (target: string, basePath = ""): string => {
 export const HeadingRedirect: QuartzEmitterPlugin = () => {
   const emitRedirects = async (ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePath[]> => {
     const outputs: FilePath[] = [];
-    const redirectSlugs: string[] = [];
+    const redirects: Record<string, string> = {};
 
     for (const [_tree, vfile] of content) {
       const frontmatter = (vfile.data?.frontmatter ?? {}) as {
@@ -97,12 +97,12 @@ export const HeadingRedirect: QuartzEmitterPlugin = () => {
       if (!slug) {
         continue;
       }
-      redirectSlugs.push(slug);
 
       const baseUrl = ctx.cfg.configuration.baseUrl ?? "";
       const basePath = baseUrl.includes("/") ? `/${baseUrl.split("/").slice(1).join("/")}` : "";
 
       const redirectUrl = makeRedirectUrl(target, basePath);
+      redirects[slug] = redirectUrl;
       const safeUrl = escapeHtml(redirectUrl);
 
       const html = `<!DOCTYPE html>
@@ -149,7 +149,7 @@ export const HeadingRedirect: QuartzEmitterPlugin = () => {
     }
     const redirectSlugsPath = path.join(ctx.argv.output, "heading-redirects.json") as FilePath;
 
-    await fs.writeFile(redirectSlugsPath, JSON.stringify(redirectSlugs), "utf8");
+    await fs.writeFile(redirectSlugsPath, JSON.stringify(redirects), "utf8");
 
     outputs.push(redirectSlugsPath);
     return outputs;

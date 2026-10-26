@@ -4,13 +4,21 @@ const markRedirectLinks = async () => {
     const response = await fetch(`/${basePath}/heading-redirects.json`);
     if (!response.ok) return;
 
-    const redirectSlugs = (await response.json()) as string[];
-    const redirectSet = new Set(redirectSlugs.map((slug) => `/${basePath}/${slug}`));
+    const redirects = (await response.json()) as Record<string, string>;
 
     document.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((link) => {
       const url = new URL(link.href, window.location.href);
+      const prefix = `/${basePath}/`;
 
-      if (url.origin === window.location.origin && redirectSet.has(url.pathname)) {
+      if (url.origin !== window.location.origin || !url.pathname.startsWith(prefix)) {
+        return;
+      }
+
+      const slug = decodeURIComponent(url.pathname.slice(prefix.length));
+      const redirectUrl = redirects[slug];
+
+      if (redirectUrl) {
+        link.href = redirectUrl;
         link.dataset.routerIgnore = "";
       }
     });

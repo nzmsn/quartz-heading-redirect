@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 createRequire(import.meta.url);
 
 // src/redirect-links.inline.ts
-var redirect_links_inline_default = 'var r=async()=>{try{let t=window.location.pathname.split("/")[1],n=await fetch(`/${t}/heading-redirects.json`);if(!n.ok)return;let a=await n.json(),c=new Set(a.map(e=>`/${t}/${e}`));document.querySelectorAll("a[href]").forEach(e=>{let o=new URL(e.href,window.location.href);o.origin===window.location.origin&&c.has(o.pathname)&&(e.dataset.routerIgnore="")})}catch{}};document.addEventListener("nav",r);r();\n';
+var redirect_links_inline_default = 'var c=async()=>{try{let n=window.location.pathname.split("/")[1],r=await fetch(`/${n}/heading-redirects.json`);if(!r.ok)return;let s=await r.json();document.querySelectorAll("a[href]").forEach(e=>{let t=new URL(e.href,window.location.href),o=`/${n}/`;if(t.origin!==window.location.origin||!t.pathname.startsWith(o))return;let i=decodeURIComponent(t.pathname.slice(o.length)),a=s[i];a&&(e.href=a,e.dataset.routerIgnore="")})}catch{}};document.addEventListener("nav",c);c();\n';
 
 // src/emitter.ts
 var escapeHtml = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -29,7 +29,7 @@ var makeRedirectUrl = (target, basePath = "") => {
 var HeadingRedirect = () => {
   const emitRedirects = async (ctx, content) => {
     const outputs = [];
-    const redirectSlugs = [];
+    const redirects = {};
     for (const [_tree, vfile] of content) {
       const frontmatter = vfile.data?.frontmatter ?? {};
       if (typeof frontmatter.redirect !== "string") {
@@ -43,10 +43,10 @@ var HeadingRedirect = () => {
       if (!slug) {
         continue;
       }
-      redirectSlugs.push(slug);
       const baseUrl = ctx.cfg.configuration.baseUrl ?? "";
       const basePath = baseUrl.includes("/") ? `/${baseUrl.split("/").slice(1).join("/")}` : "";
       const redirectUrl = makeRedirectUrl(target, basePath);
+      redirects[slug] = redirectUrl;
       const safeUrl = escapeHtml(redirectUrl);
       const html = `<!DOCTYPE html>
 <html lang="ja">
@@ -78,7 +78,7 @@ var HeadingRedirect = () => {
       outputs.push(outputPath);
     }
     const redirectSlugsPath = path.join(ctx.argv.output, "heading-redirects.json");
-    await fs.writeFile(redirectSlugsPath, JSON.stringify(redirectSlugs), "utf8");
+    await fs.writeFile(redirectSlugsPath, JSON.stringify(redirects), "utf8");
     outputs.push(redirectSlugsPath);
     return outputs;
   };
