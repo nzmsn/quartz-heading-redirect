@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 createRequire(import.meta.url);
 
 // src/redirect-links.inline.ts
-var redirect_links_inline_default = 'var c=async()=>{try{let n=window.location.pathname.split("/")[1],r=await fetch(`/${n}/heading-redirects.json`);if(!r.ok)return;let s=await r.json();document.querySelectorAll("a[href]").forEach(e=>{let t=new URL(e.href,window.location.href),o=`/${n}/`;if(t.origin!==window.location.origin||!t.pathname.startsWith(o))return;let i=decodeURIComponent(t.pathname.slice(o.length)),a=s[i];a&&(e.href=a,e.dataset.routerIgnore="")})}catch{}};document.addEventListener("nav",c);c();\n';
+var redirect_links_inline_default = 'var c=async()=>{try{let o=window.location.hostname==="localhost",e=o?"":"/quartz",a=await fetch(`${e}/heading-redirects.json`);if(!a.ok)return;let i=await a.json();document.querySelectorAll("a[href]").forEach(r=>{let n=new URL(r.href,window.location.href);if(n.origin!==window.location.origin)return;let s=e?`${e}/`:"/";if(!n.pathname.startsWith(s))return;let h=decodeURIComponent(n.pathname.slice(s.length)),t=i[h];t&&(o&&t.startsWith("/quartz/")&&(t=t.slice(7)),r.href=t,r.dataset.routerIgnore="")})}catch{}};document.addEventListener("nav",c);c();\n';
 
 // src/emitter.ts
 var escapeHtml = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");

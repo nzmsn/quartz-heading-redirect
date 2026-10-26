@@ -1,26 +1,37 @@
 const markRedirectLinks = async () => {
   try {
-    const basePath = window.location.pathname.split("/")[1];
-    const response = await fetch(`/${basePath}/heading-redirects.json`);
+    const isLocal = window.location.hostname === "localhost";
+    const basePath = isLocal ? "" : "/quartz";
+    const response = await fetch(`${basePath}/heading-redirects.json`);
     if (!response.ok) return;
 
     const redirects = (await response.json()) as Record<string, string>;
 
     document.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((link) => {
       const url = new URL(link.href, window.location.href);
-      const prefix = `/${basePath}/`;
 
-      if (url.origin !== window.location.origin || !url.pathname.startsWith(prefix)) {
+      if (url.origin !== window.location.origin) {
+        return;
+      }
+
+      const prefix = basePath ? `${basePath}/` : "/";
+      if (!url.pathname.startsWith(prefix)) {
         return;
       }
 
       const slug = decodeURIComponent(url.pathname.slice(prefix.length));
-      const redirectUrl = redirects[slug];
+      let redirectUrl = redirects[slug];
 
-      if (redirectUrl) {
-        link.href = redirectUrl;
-        link.dataset.routerIgnore = "";
+      if (!redirectUrl) {
+        return;
       }
+
+      if (isLocal && redirectUrl.startsWith("/quartz/")) {
+        redirectUrl = redirectUrl.slice("/quartz".length);
+      }
+
+      link.href = redirectUrl;
+      link.dataset.routerIgnore = "";
     });
   } catch {
     // Redirect link marking is non-critical.
