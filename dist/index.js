@@ -5,11 +5,11 @@ import fs from 'fs/promises';
 createRequire(import.meta.url);
 
 // src/redirect-links.inline.ts
-var redirect_links_inline_default = 'var r=async()=>{try{let t=await fetch("/heading-redirects.json");if(!t.ok)return;let o=await t.json(),a=new Set(o.map(e=>`/${e}`));document.querySelectorAll("a[href]").forEach(e=>{let n=new URL(e.href,window.location.href);n.origin===window.location.origin&&a.has(n.pathname)&&(e.dataset.routerIgnore="")})}catch{}};document.addEventListener("nav",r);r();\n';
+var redirect_links_inline_default = 'var r=async()=>{try{let t=window.location.pathname.split("/")[1],n=await fetch(`/${t}/heading-redirects.json`);if(!n.ok)return;let a=await n.json(),c=new Set(a.map(e=>`/${t}/${e}`));document.querySelectorAll("a[href]").forEach(e=>{let o=new URL(e.href,window.location.href);o.origin===window.location.origin&&c.has(o.pathname)&&(e.dataset.routerIgnore="")})}catch{}};document.addEventListener("nav",r);r();\n';
 
 // src/emitter.ts
 var escapeHtml = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-var makeRedirectUrl = (target) => {
+var makeRedirectUrl = (target, basePath = "") => {
   const hashIndex = target.indexOf("#");
   let page = target;
   let heading = "";
@@ -21,12 +21,10 @@ var makeRedirectUrl = (target) => {
   page = page.replace(/\.md$/i, "");
   const encodedPage = page.split("/").map((part) => encodeURIComponent(part)).join("/");
   if (!heading) {
-    return `/${encodedPage}`;
+    return `${basePath}/${encodedPage}`;
   }
-  const encodedHeading = encodeURIComponent(
-    heading.trim().toLowerCase().replace(/\s+/g, "-")
-  );
-  return `/${encodedPage}#${encodedHeading}`;
+  const encodedHeading = encodeURIComponent(heading.trim().toLowerCase().replace(/\s+/g, "-"));
+  return `${basePath}/${encodedPage}#${encodedHeading}`;
 };
 var HeadingRedirect = () => {
   const emitRedirects = async (ctx, content) => {
@@ -46,7 +44,9 @@ var HeadingRedirect = () => {
         continue;
       }
       redirectSlugs.push(slug);
-      const redirectUrl = makeRedirectUrl(target);
+      const baseUrl = ctx.cfg.configuration.baseUrl ?? "";
+      const basePath = baseUrl.includes("/") ? `/${baseUrl.split("/").slice(1).join("/")}` : "";
+      const redirectUrl = makeRedirectUrl(target, basePath);
       const safeUrl = escapeHtml(redirectUrl);
       const html = `<!DOCTYPE html>
 <html lang="ja">
@@ -70,25 +70,15 @@ var HeadingRedirect = () => {
 </body>
 </html>
 `;
-      const outputPath = path.join(
-        ctx.argv.output,
-        `${slug}.html`
-      );
+      const outputPath = path.join(ctx.argv.output, `${slug}.html`);
       await fs.mkdir(path.dirname(outputPath), {
         recursive: true
       });
       await fs.writeFile(outputPath, html, "utf8");
       outputs.push(outputPath);
     }
-    const redirectSlugsPath = path.join(
-      ctx.argv.output,
-      "heading-redirects.json"
-    );
-    await fs.writeFile(
-      redirectSlugsPath,
-      JSON.stringify(redirectSlugs),
-      "utf8"
-    );
+    const redirectSlugsPath = path.join(ctx.argv.output, "heading-redirects.json");
+    await fs.writeFile(redirectSlugsPath, JSON.stringify(redirectSlugs), "utf8");
     outputs.push(redirectSlugsPath);
     return outputs;
   };
