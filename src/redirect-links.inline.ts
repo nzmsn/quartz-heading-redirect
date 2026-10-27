@@ -1,4 +1,5 @@
 let redirectsPromise: Promise<Record<string, string>> | null = null;
+let shouldScrollToRedirectHeading = false;
 
 const getRedirects = () => {
   if (redirectsPromise) {
@@ -51,6 +52,24 @@ const markRedirectLink = (
 
   link.href = redirectUrl;
   link.dataset.routerIgnore = "";
+
+  if (link.dataset.headingRedirectMarked === "true") {
+    return;
+  }
+  link.dataset.headingRedirectMarked = "true";
+
+  const targetUrl = new URL(link.href, window.location.href);
+
+  link.addEventListener("click", () => {
+    shouldScrollToRedirectHeading = true;
+    queueMicrotask(() => {
+      sessionStorage.removeItem("search-term");
+      if (targetUrl.pathname === location.pathname && targetUrl.hash) {
+        document.getElementById(decodeURIComponent(targetUrl.hash.slice(1)))?.scrollIntoView();
+        shouldScrollToRedirectHeading = false;
+      }
+    });
+  });
 };
 
 const markRedirectLinks = async () => {
@@ -90,5 +109,14 @@ observer.observe(document.documentElement, {
   subtree: true,
 });
 
-document.addEventListener("nav", markRedirectLinks);
+document.addEventListener("nav", () => {
+  void markRedirectLinks();
+
+  if (shouldScrollToRedirectHeading && location.hash) {
+    shouldScrollToRedirectHeading = false;
+    requestAnimationFrame(() => {
+      document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
+    });
+  }
+});
 markRedirectLinks();
